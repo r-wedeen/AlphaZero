@@ -1,0 +1,6 @@
+.DS_Store
+.venv/
+unknots.txt
+results/
+__pycache__/
+play.ipynb
