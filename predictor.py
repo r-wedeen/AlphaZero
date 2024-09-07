@@ -41,6 +41,9 @@ class MLP(nn.Module):
         )
         self.policy_head = nn.Linear(config.d_layer, config.n_actions)
         self.value_head = nn.Linear(config.d_layer, 1)
+
+        self._init_weights()
+
         self.to(self.device)
         
     def forward(self, x):
@@ -49,4 +52,20 @@ class MLP(nn.Module):
         logits = self.policy_head(x)
         value = self.value_head(x)
         return logits, value
-
+    
+    def _init_weights(self):
+        # Xavier initialization for input and mid layers
+        nn.init.xavier_uniform_(self.input_layer.weight)
+        for layer in self.mid_layers:
+            nn.init.xavier_uniform_(layer.net[0].weight)
+        
+        # Initialize value heads with smaller weights
+        nn.init.xavier_uniform_(self.policy_head.weight, gain=0.01)
+        nn.init.xavier_uniform_(self.value_head.weight, gain=0.002)
+        
+        # Initialize biases to zero
+        nn.init.zeros_(self.input_layer.bias)
+        for layer in self.mid_layers:
+            nn.init.zeros_(layer.net[0].bias)
+        nn.init.zeros_(self.policy_head.bias)
+        nn.init.zeros_(self.value_head.bias)

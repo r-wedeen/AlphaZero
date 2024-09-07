@@ -11,7 +11,7 @@ class KnotMDP:
         if (tuple(state), action) in self._transposition_table:
             return self._transposition_table[(tuple(state), action)]
         next_state = self._action_methods[action](state)
-        reward = -len(next_state)
+        reward = -float(len(next_state)) / self.N_max
         terminal = (len(next_state) == 0)
         self._transposition_table[(tuple(state), action)] = (next_state, reward, terminal)
         return next_state, reward, terminal

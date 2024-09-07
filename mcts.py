@@ -9,6 +9,7 @@
 
 import numpy as np
 import math
+from graphviz import Digraph
 
 class Node:
     def __init__(self, args, mdp, state=None, parent=None, \
@@ -110,6 +111,12 @@ class MCTS:
                 
             node.backpropagate(value)
 
+            #FOR DEBUGGING
+            # Generate and save the visualization
+            dot = self.visualize_tree()
+            dot.render('mcts_tree', format='png', cleanup=True)
+            input("Press Enter to continue...")
+
         temperature = self.args['temperature']
         policy = np.zeros(self.mdp.n_actions)
         tempered_policy = np.zeros(self.mdp.n_actions)
@@ -118,7 +125,7 @@ class MCTS:
         for action, child in self.root.children.items():
             policy[action] = child.visit_count
             tempered_policy[action] = child.visit_count**(1/temperature)
-            q_values[action] = child.value_sum / child.visit_count
+            q_values[action] = child.value_sum / child.visit_count if child.visit_count > 0 else 0
 
         policy /= np.sum(policy)        
         tempered_policy /= np.sum(tempered_policy)
@@ -131,6 +138,31 @@ class MCTS:
         self.root = self.root.children[action]
         self.root.parent, self.root.action_taken = None, None
         return state, reward, terminal
+    
+    def visualize_tree(self, max_depth=10):
+        dot = Digraph(comment='MCTS Tree')
+        dot.attr(rankdir='TB', size='12000,20000')
+        dot.graph_attr['ranksep'] = '2.0'
+
+        def add_nodes_edges(node, parent_id=None, depth=0):
+            if depth > max_depth:
+                return
+            
+            if node.visit_count > 0:
+                node_id = str(id(node))
+                if node.parent is not None:
+                    label = f'N: {node.visit_count}\nQ: {node.value_sum / node.visit_count}\n UCB: {node.parent.get_ucb(node)}'
+                else:
+                    label = f'N: {node.visit_count}\nQ: {node.value_sum / node.visit_count}'
+                dot.node(node_id, label)
+                if parent_id:
+                    dot.edge(parent_id, node_id, f'{self.mdp._action_names[node.action_taken]}')
+
+            for child in node.children.values():
+                add_nodes_edges(child, node_id, depth + 1)
+
+        add_nodes_edges(self.root)
+        return dot
     
 # ----------------------------------------------------------------------
 # Testing
@@ -147,16 +179,17 @@ with open('unknots.txt', 'r') as file:
 
 args = {
         'C': 1.4,
-        'discount': 0.99,
-        'num_sims': 200,
+        'discount': 0.95,
+        'num_sims': 100,
         'num_rollouts': 10,
         'rollout_depth': 10,
         'temperature': 0.5,
+        'N_max' : 128,
     }
 
 for unknot in unknots[:100]:
     state = np.array(unknot)
-    mdp = KnotMDP()
+    mdp = KnotMDP(args)
 
     mcts = MCTS(mdp, initial_state=state, args=args)
 
@@ -166,5 +199,6 @@ for unknot in unknots[:100]:
         policy, value = mcts.search()
         action = np.random.choice(mdp.n_actions, p=policy)
         print(mdp._action_names[action])
+        input("Press Enter to continue...")
         state, _, terminal = mcts.step(action)
         print(state)
