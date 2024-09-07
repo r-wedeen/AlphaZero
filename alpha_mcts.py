@@ -101,18 +101,15 @@ class AlphaMCTS:
                 value = value.item()
                 policy = F.softmax(logits, dim=-1).cpu().numpy()
                 node.expand(policy)
-                print(f'logits_min: {torch.min(logits)}, logits_max: {torch.max(logits)}')
+                #tqdm.write(f'logits_min: {torch.min(logits)}, logits_max: {torch.max(logits)}')
             
             node.backpropagate(value)
-            print(f'value: {value}')
-            print(f'reward: {node.reward}')
-            
             
             #FOR DEBUGGING
             # Generate and save the visualization
-            dot = self.visualize_tree()
-            dot.render('mcts_tree', format='png', cleanup=True)
-            input("Press Enter to continue...")
+            # dot = self.visualize_tree()
+            # dot.render('mcts_tree', format='png', cleanup=True)
+            # input("Press Enter to continue...")
 
         mcts_policy = np.zeros(self.mdp.n_actions)
         tempered_policy = np.zeros(self.mdp.n_actions)
@@ -163,7 +160,7 @@ class AlphaMCTS:
 #------------------------------------------------------------------------------#
 # Testing
 #------------------------------------------------------------------------------#
-
+"""
 from knot_mdp import KnotMDP
 import json
 from tqdm import tqdm
@@ -231,12 +228,12 @@ for unknot in unknots[:100]:
     state = np.array(unknot)
     mcts = AlphaMCTS(mdp, initial_state=state, args=args, model=model)
 
-    print(state)
+    tqdm.write(state)
     terminal = False
     while not terminal:
         policy, value = mcts.search(temperature=args['temperature'])
         action = np.random.choice(mdp.n_actions, p=policy)
-        print(mdp._action_names[action])
-        input("Press Enter to continue...")
+        tqdm.write(mdp._action_names[action])
         state, _, terminal = mcts.step(action)
-        print(state)
+        tqdm.write(state)
+"""

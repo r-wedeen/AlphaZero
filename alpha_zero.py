@@ -133,7 +133,7 @@ args = {
     'num_epochs': 10,
     'batch_size': 10,
     'N_max': 128,
-    'num_sims': 200,
+    'num_sims': 100,
     'C' : 1.414,
     'out_dir': out_dir,
     'n_layers': 4,

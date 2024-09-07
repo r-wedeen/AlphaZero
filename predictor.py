@@ -60,7 +60,7 @@ class MLP(nn.Module):
             nn.init.xavier_uniform_(layer.net[0].weight)
         
         # Initialize value heads with smaller weights
-        nn.init.xavier_uniform_(self.policy_head.weight, gain=0.01)
+        nn.init.xavier_uniform_(self.policy_head.weight, gain=0.002)
         nn.init.xavier_uniform_(self.value_head.weight, gain=0.002)
         
         # Initialize biases to zero
